@@ -15,8 +15,21 @@ interface ITahomaControlPayload {
   lowspeed: boolean;
 }
 
+const TAHOMA_COMMAND_OPEN = 'open';
+const TAHOMA_COMMAND_CLOSE = 'close';
+const TAHOMA_COMMAND_ROTATION = 'rotation';
+const TAHOMA_COMMAND_STOP = 'stop';
+const TAHOMA_COMMAND_SET_CLOSURE = 'setClosure';
+const TAHOMA_COMMAND_SET_CLOSURE_AND_ORIENTATION = 'setClosureAndOrientation';
+
 interface ITahomaControlInstructions {
-  command: 'open' | 'close' | 'rotation' | 'stop' | 'setClosure';
+  command: 
+    TAHOMA_COMMAND_OPEN 
+    | TAHOMA_COMMAND_CLOSE 
+    | TAHOMA_COMMAND_ROTATION 
+    | TAHOMA_COMMAND_STOP 
+    | TAHOMA_COMMAND_SET_CLOSURE 
+    | TAHOMA_COMMAND_SET_CLOSURE_AND_ORIENTATION;
   parameters?: number[];
   expectedState?: { open?: boolean; position?: number; orientation?: number };
   labels: {
@@ -115,7 +128,7 @@ function generateInstructionsFromPayload(
   switch (payload.action) {
     case 'open':
       return {
-        command: 'open',
+        command: TAHOMA_COMMAND_OPEN,
         expectedState: { open: true, position: 0 },
         labels: {
           done: 'Open',
@@ -125,7 +138,7 @@ function generateInstructionsFromPayload(
 
     case 'close':
       return {
-        command: 'close',
+        command: TAHOMA_COMMAND_CLOSE,
         expectedState: { open: false, position: 100 },
         labels: {
           done: 'Closed',
@@ -135,7 +148,7 @@ function generateInstructionsFromPayload(
 
     case 'customPosition':
       return {
-        command: 'setClosure',
+        command: TAHOMA_COMMAND_SET_CLOSURE,
         expectedState: {
           open: true,
           position: parseInt(payload.position, 10),
@@ -148,8 +161,9 @@ function generateInstructionsFromPayload(
       };
 
     case 'customRotation':
+    case 'customOrientation':
       return {
-        command: 'rotation',
+        command: TAHOMA_COMMAND_ROTATION,
         expectedState: { orientation: parseInt(payload.orientation, 10) },
         labels: {
           done: `Rotated to ${payload.orientation}`,
@@ -158,9 +172,21 @@ function generateInstructionsFromPayload(
         parameters: [parseInt(payload.orientation, 10)],
       };
 
+    case 'customClosureAndOrientation':
+      return {
+        command: TAHOMA_COMMAND_SET_CLOSURE_AND_ORIENTATION,
+        expectedState: { position: parseInt(payload.position, 10), orientation: parseInt(payload.orientation, 10) },
+        labels: {
+          done: `Set to position:${payload.position}, orientation:${payload.orientation}`,
+          progress: `Moving to position:${payload.position}, orientation:${payload.orientation}...`,
+        },
+        parameters: [parseInt(payload.position, 10), parseInt(payload.orientation, 10)],
+      };
+
+
     case 'stop':
       return {
-        command: 'stop',
+        command: TAHOMA_COMMAND_STOP,
         labels: {
           done: `Stopped`,
           progress: `Stopping...`,
