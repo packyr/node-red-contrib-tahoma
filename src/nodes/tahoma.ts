@@ -13,6 +13,7 @@ interface ITahomaControlPayload {
   orientation: string;
   position: string;
   lowspeed: boolean;
+  repetitions: string;
 }
 
 enum TahomaCommands {
@@ -21,13 +22,14 @@ enum TahomaCommands {
   ROTATION = 'rotation',
   STOP = 'stop',
   SET_CLOSURE = 'setClosure',
-  SET_CLOSURE_AND_ORIENTATION = 'setClosureAndOrientation'
+  SET_CLOSURE_AND_ORIENTATION = 'setClosureAndOrientation',
+  WINK = 'wink'
 }
 
 interface ITahomaControlInstructions {
   command: TahomaCommands;
   parameters?: number[];
-  expectedState?: { open?: boolean; position?: number; orientation?: number };
+  expectedState?: { open?: boolean; position?: number; orientation?: number; repetitions?: number };
   labels: {
     done: string;
     progress: string;
@@ -187,6 +189,17 @@ function generateInstructionsFromPayload(
           done: `Stopped`,
           progress: `Stopping...`,
         },
+      };
+
+    case 'wink':
+      return {
+        command: TahomaCommands.WINK,
+        expectedState: { repetitions: parseInt(payload.repetitions, 10) },
+        labels: {
+          done: `Stopped`,
+          progress: `Winking ${payload.repetitions} time(s)`,
+        },
+        parameters: [parseInt(payload.repetitions, 10)],
       };
 
     default:
